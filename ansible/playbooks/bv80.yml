@@ -1,0 +1,24 @@
+---
+- hosts: "{{ robothost }}"
+  
+  #We're doing setup for a Neato BV-80 'bot here. 
+  #We assume you've completed the basic SD-card generation and run the newbiquity playbook. 
+  
+  vars:
+    - robotuser: ubuntu
+    - robotpw  : ubuntu
+    - robottype: notmagni
+
+  tasks:
+    
+    name: Ensure some extra ROS packages are installed
+    apt: name={{ item }} state=present update_cache=yes
+    with_items:
+       -ros-indigo-xacro 
+       -ros-indigo-turtlebot-description 
+       -ros-indigo-turtlebot-navigation 
+       -ros-indigo-turtlebot-teleop 
+       -ros-indigo-yocs-cmd-vel-mux 
+       -ros-indigo-yocs-velocity-smoother
+
+    

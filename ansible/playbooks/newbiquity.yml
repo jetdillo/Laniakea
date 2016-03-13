@@ -1,0 +1,81 @@
+---
+- hosts: "{{ robothost }}"
+  
+  vars:
+    - robotuser: ubuntu
+    - robotpw  : ubuntu
+    - robottype: notmagni
+
+  tasks:
+    
+    - name: push ssh keys into ubuntu authorized_keys 
+      sudo: true
+      authorized_key: user=ubuntu key="{{ lookup('file', '/home/armadilo/.ssh/id_rsa.pub') }}"
+
+    - name: ensure basic tools and packages are installed on remote host
+      sudo: true
+      apt: name={{ item }} state=present update_cache=yes
+      with_items:
+         - curl
+         - wget 
+         - git
+         - bmap-tools 
+         - libnss-mdns
+         - util-linux
+         - chrony
+         - ros-indigo-tf2-kdl
+         - ntpdate
+         - tzdata 
+         - ros-indigo-roslint
+         - dphys-swapfile
+           
+    - name: install Magni-related packages
+      sudo: true
+      apt: name={{ item }} state=present 
+      with_items:
+         - ros-indigo-hardware-interface
+         - ros-indigo-controller-manager 
+      when: robottype == 'magni'
+
+    - name: clone Magni-related repos 
+      sudo: true
+      git: repo=https://github.com/UbiquityRobotics/ubiquity_motor.git dest=/home/'{{ robotuser }}'/catkin_ws/src clone=yes
+      when: robottype == 'magni'
+
+    - name: pull in robot-upstart
+      sudo: true
+      git: repo=https://github.com/clearpathrobotics/robot_upstart.git dest=/home/'{{ robotuser }}'/catkin_ws/src clone=yes
+
+    - name: Permissions fix-up
+      sudo: true 
+      file: path=/home/{{robotuser}} owner={{robotuser}} group={{robotuser}} recurse=yes
+
+    - name: Add dphys-swapfile
+      sudo: true
+      apt: name=dphys-swapfile state=present
+    
+    - name: Ready to reboot after swap added
+      pause: prompt="Ahhhh, the name is Re-Bootsy Baby!"
+     
+    - name: Reboot 
+      sudo: true
+      command: /sbin/reboot -h now  
+    
+    - name: wait for reboot
+      wait_for: port=22 host= "{{ robothost}}" search_regex=OpenSSH delay=30
+   
+    - name: ensure basic networking files exist
+      file: path=/etc/networking/interfaces state=present mode=644
+
+    - name: ensure entry for lo in interfaces file
+      lineinfile: dest=/etc/networking/interfaces line="auto lo"
+    - name: ensure entry for iface lo
+      lineinfile: dest=/etc/networking/interfaces line="iface lo inet loopback"
+    - name: ensure entry for eth0
+      lineinfile: dest=/etc/networking/interfaces line="allow-hotplug eth0"
+    - name: ensure entry for iface eth0
+      lineinfile: dest=/etc/networking/interfaces line="iface eth0 inet dhcp"
+
+    - name: ensure there is a hostname entry 
+      file: path=/etc/hostname state=present mode=644
+  
