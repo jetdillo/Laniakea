@@ -4,13 +4,15 @@
   vars:
     - robotuser: ubuntu
     - robotpw  : ubuntu
+    - humanuser: ubuntu
     - robottype: notmagni
+    - rosversion: indigo
 
   tasks:
     
-    - name: push ssh keys into ubuntu authorized_keys 
+    - name: push local ssh key into ubuntu authorized_keys 
       sudo: true
-      authorized_key: user=ubuntu key="{{ lookup('file', '/home/armadilo/.ssh/id_rsa.pub') }}"
+      authorized_key: user=ubuntu key=/home/'{{humanuser}}'/.ssh/id_rsa.pub
 
     - name: ensure basic tools and packages are installed on remote host
       sudo: true
@@ -24,7 +26,6 @@
          - util-linux
          - chrony
          - ros-indigo-tf2-kdl
-         - ntpdate
          - tzdata 
          - ros-indigo-roslint
          - dphys-swapfile

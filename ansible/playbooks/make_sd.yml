@@ -44,11 +44,7 @@
       register: targetdev
       failed_when: targetdev.stdout == ""
  
-    - name: Found the following removable media
-      debug: msg="Looks like {{targetdev.stdout}} is an SD card"
-   
     - name: Check mount status of target device
-
       shell: df -ak|grep '{{ targetdev.stdout }}'|wc -l|tr -d "\n"
       register: td_mounted 
  
@@ -62,6 +58,9 @@
       sudo: yes
       shell: umount {{ item }}
       with_lines: cat /etc/mtab|grep '{{targetdev.stdout}}'|cut -d' ' -f 2
+
+    - name: Found the following removable media
+      debug: msg="Looks like {{targetdev.stdout}} is an SD card"
 
     - name: READY TO WRITE SD CARD 
       pause: prompt="Hit Enter to continue and ERASE ALL DATA on {{targetdev.stdout}} . if this is not the device you want to use, hit CTRL-C to break out"
