@@ -8,17 +8,42 @@
     - robotuser: ubuntu
     - robotpw  : ubuntu
     - robottype: notmagni
+    - rosdistro: '{{rosdistro}}'
 
   tasks:
     
-    name: Ensure some extra ROS packages are installed
+    name: install some additional Ubuntu-related packages
     apt: name={{ item }} state=present update_cache=yes
     with_items:
-       -ros-indigo-xacro 
-       -ros-indigo-turtlebot-description 
-       -ros-indigo-turtlebot-navigation 
-       -ros-indigo-turtlebot-teleop 
-       -ros-indigo-yocs-cmd-vel-mux 
-       -ros-indigo-yocs-velocity-smoother
+       -ros-'{{rosdistro}}'-xacro 
+       -ros-'{{rosdistro}}'-turtlebot-description 
+       -ros-'{{rosdistro}}'-turtlebot-navigation 
+       -ros-'{{rosdistro}}'-turtlebot-teleop 
+       -ros-'{{rosdistro}}'-yocs-cmd-vel-mux 
+       -ros-'{{rosdistro}}'-yocs-velocity-smoother
 
-    
+    name: ensure a catkin workspace exists
+       file: /home/'{{robotuser}}'/catkin_ws state=directory mode=644
+
+    name: check to see that catkin_ws was initialized
+       stat: /home/'{{robotuser}}'/catkin_ws/devel
+       register: catkin_done
+
+    name: run catkin_init_workspace 
+      shell: /opt/ros/indigo/bin/catkin_init_workspace
+      args:
+        chdir: /home/'{{robotuser}}'/catkin_ws/src
+      when: not check_done.stat.exists
+
+    name: run initial catkin_make
+      shell: catkin_make
+      args:
+        chdir: /home/'{{robotuser}}'/catkin_ws/src
+
+    name: git clone the BotVac BV-80 repo
+      git: repo=https://github.com/SV-ROS/intro_to_ros.git dest=/home/'{{robotuser}}'/catkin_ws/src
+
+    name: catkin_make on the intro_to_ros tree
+      shell: catkin_make
+      args:
+        chdir: /home/'{{robotuser}}'/catkin_ws/src
