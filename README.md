@@ -13,6 +13,27 @@ Here's what does what so far:
 * bv80.yml
    * Post-boot Ansible provisioning playbook to add packages & configs for the SVROS BV80 BotVac
 
+* setup_ros.yml 
+   * A basic provisioning playbook to install a specified version of ROS onto a host. You will need to tweak the hosts: line to the system/inventory entry you want to deploy to. The ``make_sd.yml`` playbook generates images w/ ROS Indigo Igloo already installed on it. You should only need to use this on a system/series of systems that don't have ROS already installed(like, say, a chaser/maintenance laptop). 
+
+How to run:
+
+You will need to have Ansible installed already on the computer you run these playbooks from.
+cd <YOUR LOCAL GIT REPO>/laniakea/ansible/playbooks
+
+To run make_sd.yml to flash an SD card with the Ubiquity Robotics image for Raspberry Pi do this:
+
+`ansible-playbook -K make_sd.yml`  
+
+...and follow the prompts
+
+After make_sd.yml completes, run:
+`ansible-playbook -k -K -u ubuntu --extra-vars "robothost=ubiquity" newbiquity.yml` 
+
+The extra "-k" tells Ansible that you need to use regular password auth along with the sudo password for this playbook run. This is because fresh out of the box, this install doesn't have any ssh public keys stored in /home/ubuntu/.ssh/authorized_keys 
+
+From here you branch off into other appropriate playbooks for installing the BV80 BotVac packages, for example.
+
 These should mostly work, although the make_sd.yml has received the brunt of hacking and testing. Please send pull requests, comments, bug reports, etc. 
 
 
