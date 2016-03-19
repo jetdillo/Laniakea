@@ -1,0 +1,67 @@
+---
+- hosts: {{ robothosts }}
+   
+  #Install ROS on a particular Ubuntu host 
+  #cribbed pretty much line-for-line from the ros.org Install-from-debs wiki page.  
+  #You will need to change the hosts definition above to something sensible  
+ 
+  vars:
+    - robotuser: ubuntu
+    - robotpw  : ubuntu
+    - robottype: notmagni
+    - rosdistro: indigo
+
+  tasks:
+   
+    - name: set LOCALE 
+      sudo: yes
+      shell: update-locale LANG=C LANGUAGE=C LC_ALL=C LC_MESSAGES=POSIX
+   
+    - name: ensure proper apt-sources exists
+      sudo: yes
+      file: path=/etc/apt/sources.list.d/ros-latest.list state=present
+
+    - name: configure apt-sources
+      sudo: yes
+      lineinfile: dest=/etc/apt/sources.list.d/ros-latest.list line="deb http://packages.ros.org/ros/ubuntu trusty main"
+
+    - name: fetch keys
+      sudo: yes
+      apt_key: id=0xB01FA116 url=hkp://ha.pool.sks-keyservers.net:80
+
+    - name: Update packages and install ROS base
+      sudo: yes
+      apt: name=ros-'{{rosdistro}}'-ros-base state=present update_cache=yes
+
+    - name: Get ros-install
+      sudo: yes 
+      apt: name=python-rosdep
+
+    - name: init rosdep
+      sudo: yes
+      shell: rosdep init 
+
+    - name: rosdep update
+      shell: rosdep update
+
+    - name: rosinstall
+      sudo: yes
+      apt: name=python-rosinstall
+
+    - name: ensure a catkin workspace exists
+      file: /home/'{{robotuser}}'/catkin_ws state=directory mode=644
+
+    - name: check to see that catkin_ws was initialized
+      stat: /home/'{{robotuser}}'/catkin_ws/devel
+      register: catkin_done
+
+    - name: run catkin_init_workspace 
+      shell: /opt/ros/indigo/bin/catkin_init_workspace
+      args:
+        chdir: /home/'{{robotuser}}'/catkin_ws/src
+        when: not check_done.stat.exists
+
+    - name: run initial catkin_make
+      shell: catkin_make
+      args:
+         chdir: /home/'{{robotuser}}'/catkin_ws/src
