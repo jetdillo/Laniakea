@@ -4,6 +4,13 @@ Laniakea AKA "Turtle Beach", where turtles and robots are hatched.
 This is a collection of Ansible and Fabric scripts & playbooks for building the 
 Ubiquity ROS image described at the [Ubiquity Robots Download and Install Guide](https://github.com/UbiquityRobotics/ubiquity_main/blob/master/Doc_Downloading_and_Installing_the_Ubiquity_Ubuntu_ROS_Kernel_Image.md)
 
+Relevant websites for those that aren't familiar with either Fabric or Ansible
+
+Ansible: 
+https://www.ansible.com/
+Fabric:
+http://www.fabfile.org/
+
 Here's what does what so far:
 
 * make_sd.yml
