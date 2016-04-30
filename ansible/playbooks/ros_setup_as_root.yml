@@ -1,0 +1,88 @@
+---
+- hosts: ros
+   
+  #Install ROS on a particular Ubuntu host 
+  #cribbed pretty much line-for-line from the ros.org Install-from-debs wiki page.  
+  #You will need to change the hosts definition above to something sensible  
+ 
+
+  tasks:
+
+    - name: ROS User
+      user: 
+        name='{{rosuser}}' 
+        password='{{rosuserpass}}' 
+        groups=adm,dialout,cdrom,floppy,sudo,audio,video,plugdev,users 
+        append=yes
+        shell=/bin/bash
+  
+    - name: set LOCALE 
+      shell: update-locale LANG=C LANGUAGE=C LC_ALL=C LC_MESSAGES=POSIX
+   
+    - name: ensure proper apt-sources exists
+      file: path=/etc/apt/sources.list.d/ros-latest.list state=touch 
+
+    - name: configure apt-sources
+      lineinfile: 
+        dest=/etc/apt/sources.list.d/ros-latest.list 
+        line="deb http://packages.ros.org/ros/ubuntu trusty main" 
+
+    - name: fetch keys
+      apt_key: id=0xB01FA116 keyserver=hkp://ha.pool.sks-keyservers.net:80
+
+    - name: apt-get update
+      apt: update_cache=yes
+
+    - name: Update packages and install ROS base
+      apt: name=ros-{{ rosdistro }}-ros-base state=present update_cache=yes
+
+    - name: Get ros-install
+      apt: name=python-rosdep
+
+    - name: Check if rosdep initialized
+      stat: path=/etc/ros/rosdep/sources.list.d/20-default.list
+      register: rosdepinit
+
+    - name: init rosdep
+      shell: rosdep init
+      when: not rosdepinit.stat.exists
+
+    - name: rosdep update
+      shell: rosdep update
+      become: yes
+      become_user: '{{ rosuser }}'
+
+    - name: rosinstall
+      apt: name=python-rosinstall
+
+    - name: configure apt-sources
+      lineinfile:
+        dest=/home/{{ rosuser }}/.bashrc
+        line="source /opt/ros/indigo/setup.bash"
+
+    - name: ensure a catkin workspace exists
+      file: path=/home/{{ rosuser }}/catkin_ws/src state=directory mode=755
+      become: yes
+      become_user: '{{ rosuser }}'
+
+    - name: check to see that catkin_ws was initialized
+      stat: path=/home/{{ rosuser }}/catkin_ws/src/CMakeLists.txt
+      register: catkin_init
+
+    - name: run catkin_init_workspace 
+      shell: source /home/{{ rosuser }}/.bashrc && /opt/ros/indigo/bin/catkin_init_workspace
+      become: yes
+      become_user: '{{ rosuser }}'
+      args:
+        chdir: /home/{{ rosuser }}/catkin_ws/src
+        executable: /bin/bash
+      when: not catkin_init.stat.exists
+
+    - name: run initial catkin_make
+      shell: source /home/{{ rosuser }}/.bashrc && catkin_make
+      become: yes
+      become_user: '{{ rosuser }}'
+      args:
+         chdir: /home/{{ rosuser }}/catkin_ws
+         executable: /bin/bash
+

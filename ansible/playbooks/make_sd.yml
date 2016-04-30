@@ -6,6 +6,11 @@
   vars:
     - robothost: ubuntu
     - robotuser: ubuntu
+    - zipfile: latest-ubiquity-trusty.zip
+    - zippath: "/tmp/{{ zipfile }}"
+    - imgprefix: 2015-10-14-ubuntu-trusty
+    - bmapname: "{{ imgprefix }}.bmap"
+    - imgname: "{{ imgprefix }}.img"
   tasks:
     - name: ensure basic tools and packages are installed
       sudo: true
@@ -17,15 +22,24 @@
          - bmap-tools 
          - libnss-mdns
          - util-linux
-     
+    
+    - name: "check if ubiquity Pi image is present in {{ zippath }} "
+      stat: path='{{ zippath }}'
+      register: have_zip
+
+ 
     - name: fetch the latest ubiquity Pi image(This will take a while)
-      get_url: url=https://ubiquityrobotics.com/latest-ubiquity-trusty.zip dest=/tmp validate_certs=no
+      get_url: url=https://ubiquityrobotics.com/latest-ubiquity-trusty.zip dest='{{ zippath }}' validate_certs=no
+      when: have_zip.stat.exists == False
 
     - name: unpack the zip file 
-      unarchive: src=/tmp/latest-ubiquity-trusty.zip dest=/tmp  
+      unarchive: src='{{ zippath }}' dest=/tmp
 
     - name: Remove SD Cards and USB drives 
       pause: prompt="Hit Enter to continue"
+ 
+    - name: Wait for removable media to finish umounting
+      pause: seconds=20
 
     - name: Examining fixed volumes
       sudo: yes
@@ -34,16 +48,25 @@
     - name: scan complete. Now insert the SD card
       pause: prompt="Hit Enter to continue"
 
-    - name: Find removable media
+    - name: Wait for media to mount
+      pause: seconds=20
+
+    - name: Examining removable media 
       sudo: yes
       shell: fdisk -l|awk '/^\/dev/ { print $1}'|sed 's/[0-9]//g'|uniq >/tmp/all_vols
 
-    - name: Check mount table
+    - name: Diff mountable devices
       sudo: yes
       shell: diff /tmp/fixed_vols /tmp/all_vols|tail -1|awk '{ print $2 }'
       register: targetdev
-      failed_when: targetdev.stdout == ""
- 
+    
+    #- fail: msg="NO SD CARD DETECTED *FAILING*. \n This error may also occur when there is no valid partition table on the card"
+    #  when: targetdev is not defined
+
+    - name: Found the following removable media
+      debug: msg="Looks like {{targetdev.stdout}} is an SD card"
+      failed_when: targetdev is not defined
+   
     - name: Check mount status of target device
       shell: df -ak|grep '{{ targetdev.stdout }}'|wc -l|tr -d "\n"
       register: td_mounted 
@@ -59,19 +82,16 @@
       shell: umount {{ item }}
       with_lines: cat /etc/mtab|grep '{{targetdev.stdout}}'|cut -d' ' -f 2
 
-    - name: Found the following removable media
-      debug: msg="Looks like {{targetdev.stdout}} is an SD card"
-
     - name: READY TO WRITE SD CARD 
       pause: prompt="Hit Enter to continue and ERASE ALL DATA on {{targetdev.stdout}} . if this is not the device you want to use, hit CTRL-C to break out"
       
     - name: "COPYING IMG TO '{{ targetdev.stdout }}' . This will take a few minutes..."
       sudo: yes
-      shell: bmaptool copy --bmap /tmp/*.bmap /tmp/*.img '{{ targetdev.stdout }}'
+      shell: bmaptool copy --bmap /tmp/'{{ bmapname }}' /tmp/'{{ imgname }}' '{{ targetdev.stdout }}'
 
     - name: "Inflate 2nd partition to full size( using --force to get around geometry from .img file)"
       sudo: yes
-      shell: sfdisk '{{ targetdev.stdout }}' < /home/armadilo/autobot/ansible/files/urbi.layout --force
+      shell: sfdisk '{{ targetdev.stdout }}' < /home/armadilo/laniakea/ansible/files/urbi.layout --force
 
     - name: Get name of new Linux fs partition
       sudo: yes
