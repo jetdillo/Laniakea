@@ -1,0 +1,23 @@
+---
+- hosts: '{{robothosts}}'
+   
+  #Install packages necessary to run a turtlebot 
+ 
+  vars:
+    - robotuser: ubuntu
+    - robotpw  : ubuntu
+    - robottype: notmagni
+    - rosdistro: indigo
+
+  tasks:
+ 
+    - name: Install packages needed to run a turtlebot 
+      sudo: yes
+      apt: name={{ item }} state=present update_cache=yes
+      with_items:
+         - ros-{{rosdistro}}-turtlebot
+         - ros-{{rosdistro}}-joy
+         - ros-{{rosdistro}}-joystick-drivers
+         - ros-{{rosdistro}}-teleop-twist-joy
+         - ros-{{rosdistro}}-turtlebot-teleop
+         - ros-{{rosdistro}}-turtlebot-navigation
