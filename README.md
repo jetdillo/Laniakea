@@ -7,12 +7,12 @@ The Revolution will be automated.
 This is a collection of Ansible and Fabric scripts & playbooks for building the 
 Ubiquity ROS image described at the [Ubiquity Robots Download and Install Guide](https://github.com/UbiquityRobotics/ubiquity_main/blob/master/Doc_Downloading_and_Installing_the_Ubiquity_Ubuntu_ROS_Kernel_Image.md) and installing [ROS](http://www.ros.org) on existing Ubuntu systems.
 
+Laniakea is compatible w/ Ansible 1.x, I've not started looking at 2.x yet. 
+
 The robot revolution is not going to happen, or at least not happen that quickly, if we can't at least have the robots help build themselves. 
 As fine as the [OSRF ROS](http://www.ros.org/install/) and [Ubiquity Robots](http://ubiquityrobotics) documentation is, I got tired of having to go back over it time and again when building my own ROS-based robots, I figure others probably have too. 
 
 The problem is that all real companies get this, spend tons of time on their own provisioning, repeat a lot of the same steps, flavor to taste w/ their own internal packages and then it all disappears inside that organization. So the next team that has to bring up a bunch of robots has to go look at the directions, write their own provisioning scripts...you see where this is going. 
-
-The robot revolution is not going to happen, or at least not happen that quickly, if we can't at least have the robots help build themselves. 
 
 Relevant websites for those that aren't familiar with either Fabric or Ansible:
 
@@ -20,6 +20,14 @@ Ansible:
 https://www.ansible.com/
 Fabric:
 http://www.fabfile.org/
+
+If you are new to Ansible and are using it for the first time to try to bring up ROS, please don't try to install by pulling Ansible from their Github repo. 
+
+That is almost guaranteed to end in sadness, esp. if you don't have a whole lot of experience w/ building large systems under Linux. 
+ 
+Use the Fabric script under the Fabric directory of this repo or rip out the apt-get lines from fabfile.py and run those from your shell. 
+
+In any case, you should be using the current Ubuntu-provided Ansible packages. 
 
 Here's what does what so far:
 
