@@ -1,11 +1,11 @@
 --- 
-robothost: ubuntu
-robotuser: ubuntu
-archive_name: latest-ubiquity-trusty.zip
-archive_dest_path: "/tmp/{{ zipfile }}"
-archive_base_url: https://ubiquityrobotics.com/
-archive_url: "{{ archive_base_url }}"/"{{archive_name}}" 
-imgprefix: 2015-10-14-ubuntu-trusty
-bmapname: "{{ imgprefix }}.bmap"
-imgname: "{{ imgprefix }}.img"
+
+ubuntu_version: 16.04
+pi_board: 3
+archive_type: xz
+archive_name: "ubuntu-{{ ubuntu_version }}-preinstalled-server-armhf+raspi3.img.xz"
+archive_dest_path: "/tmp/{{ archive_name }}"
+archive_remote_path: "ubuntu-rpi3/ubuntu-{{ubuntu version}}-preinstalled-server-armhf+raspi3.img.xz
+archive_base_url: http://www.finnie.org/software/raspberrypi/
+archive_url: "{{ archive_base_url }}/{{archive_remote_path}}" 
 
