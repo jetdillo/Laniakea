@@ -2,10 +2,16 @@
 - hosts: 127.0.0.1
 
   connection: local
- 
-  vars_files:
-    - sdvars.yml
- 
+  
+  vars:
+    - robothost: ubuntu
+    - robotuser: ubuntu
+    - zipfile: latest-ubiquity-trusty.zip
+    - zippath: "/tmp/{{ zipfile }}"
+    - zipurl: https://ubiquityrobotics.com
+    - imgprefix: 2015-10-14-ubuntu-trusty
+    - bmapname: "{{ imgprefix }}.bmap"
+    - imgname: "{{ imgprefix }}.img"
   tasks:
     - name: ensure basic tools and packages are installed
       sudo: true

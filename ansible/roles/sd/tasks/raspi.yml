@@ -2,10 +2,15 @@
 - hosts: 127.0.0.1
 
   connection: local
- 
-  vars_files:
-    - sdvars.yml
- 
+  
+  vars:
+    - robothost: ubuntu
+    - robotuser: ubuntu
+    - zipfile: latest-ubiquity-trusty.zip
+    - zippath: "/tmp/{{ zipfile }}"
+    - imgprefix: 2015-10-14-ubuntu-trusty
+    - bmapname: "{{ imgprefix }}.bmap"
+    - imgname: "{{ imgprefix }}.img"
   tasks:
     - name: ensure basic tools and packages are installed
       sudo: true
@@ -24,7 +29,7 @@
 
  
     - name: fetch the latest ubiquity Pi image(This will take a while)
-      get_url: url='{{ zipurl }}/{{ zipfile }}' dest='{{ zippath }}' validate_certs=no
+      get_url: url=https://ubiquityrobotics.com/latest-ubiquity-trusty.zip dest='{{ zippath }}' validate_certs=no
       when: have_zip.stat.exists == False
 
     - name: unpack the zip file 
