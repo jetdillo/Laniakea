@@ -1,0 +1,29 @@
+# An example Ansible 'hosts' file 
+#
+# It should live in /etc/ansible/hosts
+#
+#   - Comments begin with the '#' character
+#   - Blank lines are ignored
+#   - Groups of hosts are delimited by [header] elements
+#   - You can enter hostnames or ip addresses
+#   - A hostname/ip can be a member of multiple groups
+
+# Ex 1: Ungrouped hosts, specify before any group headers.
+
+localhost ansible_connection=local
+
+##Example host entry for a Ubiquity Robots Magni robot
+[ubiquity]
+urbi-123.local
+ubuntu.local
+
+## A definition for a (group of) turtlebots
+## 
+
+[turtlebots]
+turtlebot.local
+
+## A newly-flashed Raspberry Pi running the Ubiquity image
+## Yes, this is also listed above. A host/robot can appear in multiple stanzas.
+[newbot]
+ubuntu.local

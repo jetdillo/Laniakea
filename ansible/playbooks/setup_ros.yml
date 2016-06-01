@@ -27,6 +27,7 @@
          - vim
          - git
          - g++
+         - libusb-1.0-0-dev
 
     - name: Check for ROS-related apt-sources exists
       sudo: yes 
