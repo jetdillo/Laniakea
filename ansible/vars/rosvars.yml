@@ -1,0 +1,7 @@
+vars:
+   ros_root: "{{ lookup('env','ROS_ROOT') }}"
+   ros_pkg_path: "{{ lookup('env','ROS_ROOT') }}"
+   ros_master_uri: "{{ lookup('env','ROS_MASTER_URI') }}"
+   ros_distro: "{{ lookup('env','ROS_DISTRO') }}"
+   ros_ip: "{{ lookup('env','ROS_IP') }}"
+   ros_etc_dir: "{{ lookup('env','ROS_ETC_DIR') }}"
