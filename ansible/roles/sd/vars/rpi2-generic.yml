@@ -1,10 +1,11 @@
 --- 
-ubuntu_version: 16.04
-pi_board: 2
-archive_type: xz
-archive_name: "ubuntu-{{ ubuntu_version }}-preinstalled-server-armhf+raspi2.img.xz"
+archive_base_url: "http://www.finnie.org/software/raspberrypi/"
 archive_dest_path: "/tmp/{{ archive_name }}"
-archive_remote_path: "{{ ubuntu_version }}/release/ubuntu-{{ubuntu version}}-preinstalled-server-armhf+raspi2.img.xz
-archive_base_url: http://cdimage.ubuntu.com/ubuntu/releases
-archive_url: "{{ archive_base_url }}/{{archive_remote_path}}" 
-
+archive_name: "ubuntu-{{ ubuntu_version }}-preinstalled-server-armhf+raspi3.img.xz"
+archive_remote_path: "ubuntu-rpi3/ubuntu-{{ubuntu version}}-preinstalled-server-armhf+raspi3.img.xz"
+archive_type: xz
+archive_url: "{{ archive_base_url }}/{{archive_remote_path}}"
+pi_board: 2
+robothost: ubuntu
+robotuser: ubuntu
+ubuntu_version: 16.04
