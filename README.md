@@ -26,7 +26,10 @@ Instead, use the Fabric script under the Fabric directory of this repo or rip ou
 
 In any case, you should be using the current Ubuntu-provided Ansible packages, which will install Ansible 1.x, which is what Laniakea wants. I've not started looking at Ansible 2.x yet.  
 
-Here's what does what so far:
+Roles are proceeding apace. Things will start to move around and be re-disorganized shortly. 
+The existing playbooks under the main top-level "playbooks" tree will be left as is for those who just want to play along at home and don't want/need a whole huge role-based build system. 
+
+Static, self-contained playbooks are found under laniakea/playbooks and do the following things:
 
 * make_sd.yml
    * Makes a ready-to-run SD card using the Ubiquity image from [Ubiquity Robots](http://ubiquityrobotics). This will get you an Ubuntu 14.04 "Trusty" server image running ROS Indigo Igloo
@@ -36,7 +39,7 @@ Here's what does what so far:
    * Post-boot Ansible provisioning playbook to add packages & configs for the SVROS BV80 BotVac
 
 * setup_ros.yml 
-   * A basic provisioning playbook to install a specified version of ROS onto a host. You will need to tweak the hosts: line to the system/inventory entry you want to deploy to. The ``make_sd.yml`` playbook generates images w/ ROS Indigo Igloo already installed on it. You should only need to use this on a system/series of systems that don't have ROS already installed(like, say, a chaser/maintenance laptop). 
+   * A basic provisioning playbook to install a specified version of ROS onto a host. You will need to tweak the hosts: line to the system/inventory entry you want to deploy to. The ``make_sd.yml`` playbook generates images w/ ROS Indigo Igloo already installed on it. You should only need to use this on a system/series of systems that don't have ROS already installed(like, say, a chaser/maintenance laptop or a Raspberry Pi that already has Ubuntu of some stripe installed on it). 
 
 How to run:
 
