@@ -1,0 +1,48 @@
+---
+- name: ensure basic tools and packages are installed
+  sudo: true
+  apt: name="{{ item }}" state=present update_cache=yes
+  with_items:
+     - curl
+     - wget 
+     - git
+     - bmap-tools 
+     - libnss-mdns
+     - util-linux
+     - gddrescue
+   
+#- name: Check if archive has been downloaded already
+#  stat: path="{{ archive_dest_path}}/{{ item }}" 
+#  with_items:
+#     - Tegra124_Linux_R21.3.0_armhf.tbz2
+#     - Tegra_Linux_Sample-Root-Filesystem_R21.3.0_armhf.tbz2
+#  register: have_archive
+# 
+- name: fetch images (This may take a while depending on your connection)
+  get_url: url='{{archive_base_url}}/{{ item }}' dest='{{ archive_dest_path }}' validate_certs=no
+  with_items:
+     - Tegra124_Linux_R21.3.0_armhf.tbz2
+     - Tegra_Linux_Sample-Root-Filesystem_R21.3.0_armhf.tbz2
+
+- name: unpack Grinch archive
+  unarchive: src='{{ archive_dest_path }}/Tegra124_Linux_R21.3.0_armhf.tbz2' dest=/tmp
+
+- name: unpack Grinch rootfs
+  unarchive: src='{{ archive_dest_path }}/Tegra_Linux_Sample-Root-Filesystem_R21.3.0_armhf.tbz2' dest=/tmp/Linux_for_Tegra
+
+- name: apply Tegra/Grinch binaries and assorted dtbs
+  sudo: yes
+  shell: ./apply_binaries.sh chdir=/tmp/Linux_for_Tegra
+
+- name: Place Jetson board in Recovery/Reset mode
+  pause: prompt="Hit Enter to continue"
+
+- name: ensure Jetson board is attached
+  sudo: yes
+  shell: "lsusb|grep -i nvidia"
+  register: is_connected
+  
+- name: Flash grinch kernel and FS to Jetson board 
+  sudo: true
+  shell: ./flash.sh jetson-tk1 mmcblk0p1 chdir=/tmp/Linux_for_Tegra
+  failed_when: is_connected is not defined 

@@ -1,0 +1,9 @@
+---
+- hosts: '{{robothosts}}'
+
+  sudo: yes
+  roles:
+     - common
+     - jetson
+  include:
+     - jetson_kernel.yml

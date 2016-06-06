@@ -1,0 +1,4 @@
+---
+- hosts: '{{robothosts}}'
+
+- include: roles/jetson/tasks/kernel.yml 

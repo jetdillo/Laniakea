@@ -1,0 +1,46 @@
+---
+- hosts: '{{robothosts}}'
+
+  vars:
+  - archive_type: tbz2
+  - robothost: ubuntu
+  - robotuser: ubuntu
+  - archive_dest_path: "/tmp/"
+  - archive_host: http://www.jarzebski.pl/files/jetsontk1
+  - archive_base_url: "{{ archive_host}}/grinch-21.3.4"
+
+  - name: get Grinch zImage
+    get_url: url="{{archive_base_url}}/zImage" dest="{{ archive_dest_path }}" validate_certs=no
+
+  - name: fetch Grinch modules
+    get_url: url="{{archive_base_url}}/jetson-tk1-grinch-21.3.4-modules.tar.bz2" dest="{{ archive_dest_path }}" validate_certs=no
+
+  - name: fetch Grinch firmware
+    get_url: url="{{archive_base_url}}/jetson-tk1-grinch-21.3.4-firmware.tar.bz2" dest="{{ archive_dest_path }}" validate_certs=no
+
+  - name: validate md5sums
+    shell: md5sum {{ archive_dest_path}}/{{ item }}
+    with_items:
+      - zImage
+      - jetson-tk1-grinch-21.3.4-modules.tar.bz2
+      - jetson-tk1-grinch-21.3.4-firmware.tar.bz2
+
+  - name: Check MD5 sums for downloaded archives
+    pause: prompt="Hit Enter to continue, CTRL-C to abort"
+
+#This could be a bit messy, just use the shell 
+  - name: unpack extra useful modules into /lib/modules 
+    sudo: yes 
+    shell: tar -C /lib/modules -vxjf '{{archive_dest_path}}/jetson-tk1-grinch-21.3.4-modules.tar.bz2'
+
+  - name: unpack firmware into /lib
+    sudo: yes
+    shell: sudo tar -C /lib -vxjf jetson-tk1-grinch-21.3.4-firmware.tar.bz2
+
+  - name: copy Grinch kernel image into place 
+    sudo: yes
+    shell: cp '{{archive_dest_path}}/zImage' /boot/zImage
+
+  - name: Enable SPI and replace DTBs
+    sudo: yes
+    get_url: url="{{archive_base_url}}/tegra124-jetson_tk1-pm375-000-c00-00.dtb"  dest=/boot

@@ -1,0 +1,9 @@
+--- 
+ubuntu_version: 14.04
+pi_board: 0
+archive_type: tbz2
+robothost: ubuntu
+robotuser: ubuntu
+archive_dest_path: "/tmp/"
+archive_host: http://www.jarzebski.pl/files/jetsontk1
+archive_base_url: "{{ archive_host}}/grinch-21.3.4"

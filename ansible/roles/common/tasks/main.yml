@@ -1,0 +1,16 @@
+- name: ensure basic tools and packages are installed
+  sudo: true
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+     - curl
+     - wget
+     - git
+     - g++
+     - vim
+     - bmap-tools
+     - libnss-mdns
+     - util-linux
+     - gddrescue
+     - udisks
+     - libusb-1.0-0-dev
+

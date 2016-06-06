@@ -1,0 +1,95 @@
+---
+- name: set LOCALE 
+  sudo: yes
+  shell: update-locale LANG=C LANGUAGE=C LC_ALL=C LC_MESSAGES=POSIX
+
+- name: ensure basic ROS-related Ubuntu packages exist
+  sudo: yes
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+     - curl
+     - wget 
+     - emacs
+     - vim
+     - git
+     - g++
+     - libusb-1.0-0-dev
+
+- name: Check for ROS-related apt-sources exists
+  sudo: yes 
+  stat: path=/etc/apt/sources.list.d/ros-latest.list
+  register: hasapt
+
+- name: Ensure ROS-related apt-sources exists if necessary
+  sudo: yes
+  shell: touch /etc/apt/sources.list.d/ros-latest.list owner=root group=collective mode=0644
+  when: hasapt.stat.exists == False
+   
+- name: configure apt-sources
+  sudo: yes
+  lineinfile: dest=/etc/apt/sources.list.d/ros-latest.list state=present line="deb http://packages.ros.org/ros/ubuntu trusty main"
+
+    #Ansible doesn't understand HKP, so we cannot have nice things
+- name: fetch keys
+  sudo: yes
+  shell: apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 0xB01FA116
+
+- name: Update packages and install ROS base
+  sudo: yes
+  apt: name=ros-{{rosdistro}}-ros-base state=present update_cache=yes
+
+- name: Get ros-install
+  sudo: yes 
+  apt: name=python-rosdep
+
+- name: init rosdep
+  sudo: yes
+  shell: rosdep init 
+
+- name: rosdep update
+  shell: rosdep update
+
+- name: rosinstall
+  sudo: yes
+  apt: name=python-rosinstall
+
+
+- name: ensure a catkin workspace exists
+  file: path=/home/{{robotuser}}/catkin_ws/src state=directory mode=0777
+
+# Use catkin to finish setting up ROS
+- name: Initialize catkin workspace for nodes
+  shell: catkin_init_workspace chdir=/home/{{robotuser}}/catkin_ws/src
+  environment:
+    PATH: /opt/ros/{{rosdistro}}/bin
+    PYTHONPATH: /opt/ros/{{rosdistro}}/lib/python2.7/dist-packages/
+  ignore_errors: True
+
+    #Ansible and ROS and shell env: It's complicated. Better to be explicit  
+- name: Run catkin-make
+  sudo: yes
+  shell: catkin_make chdir=/home/{{robotuser}}/catkin_ws/
+  environment:
+    CMAKE_PREFIX_PATH: /opt/ros/{{rosdistro}}
+    ROS_ROOT: /opt/ros/{{rosdistro}}/share/ros
+    ROS_PACKAGE_PATH: /opt/ros/{{rosdistro}}/share:/opt/ros/{{rosdistro}}/stacks
+    LD_LIBRARY_PATH: /opt/ros/{{rosdistro}}/lib:/opt/ros/{{rosdistro}}/lib/x86_64-linux-gnu
+    CPATH: /opt/ros/{{rosdistro}}/include
+    PATH: /opt/ros/{{rosdistro}}/bin
+    PYTHONPATH: /opt/ros/{{rosdistro}}/lib/python2.7/dist-packages
+    PKG_CONFIG_PATH: /opt/ros/{{rosdistro}}/lib/pkgconfig:/opt/ros/{{rosdistro}}/lib/x86_64-linux-gnu/pkgconfig
+    ROS_ETC_DIR: /opt/ros/{{rosdistro}}/etc/ros
+  ignore_errors: True
+
+- name: add ros setup to bashrc
+  sudo: yes
+  shell: echo "source /home/{{robotuser}}/catkin_ws/devel/setup.bash" >>/home/{{robotuser}}/.bashrc
+
+- name: ensure robot-upstart is installed
+  sudo: yes
+  apt: name=ros-{{rosdistro}}-robot-upstart state=present update_cache=yes
+
+    #Now that we're done tromping about all over the filesystem, we should tidy up a bit...
+- name: fix-up home permissions
+  sudo: yes
+  file: path=/home/{{robotuser}} owner={{robotuser}} group={{robotuser}} recurse=yes
