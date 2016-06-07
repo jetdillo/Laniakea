@@ -1,5 +1,6 @@
 ---
-- name: set LOCALE 
+
+- name: update LOCALE 
   sudo: yes
   shell: update-locale LANG=C LANGUAGE=C LC_ALL=C LC_MESSAGES=POSIX
 
@@ -59,31 +60,17 @@
 
 # Use catkin to finish setting up ROS
 - name: Initialize catkin workspace for nodes
-  shell: catkin_init_workspace chdir=/home/{{robotuser}}/catkin_ws/src
+  shell: source /opt/ros/{{rosdistro}}/setup.bash && catkin_init_workspace chdir=/home/{{robotuser}}/catkin_ws/src
+  args:
+    executable: /bin/bash
   environment:
     PATH: /opt/ros/{{rosdistro}}/bin
     PYTHONPATH: /opt/ros/{{rosdistro}}/lib/python2.7/dist-packages/
   ignore_errors: True
 
-    #Ansible and ROS and shell env: It's complicated. Better to be explicit  
-- name: Run catkin-make
-  sudo: yes
-  shell: catkin_make chdir=/home/{{robotuser}}/catkin_ws/
-  environment:
-    CMAKE_PREFIX_PATH: /opt/ros/{{rosdistro}}
-    ROS_ROOT: /opt/ros/{{rosdistro}}/share/ros
-    ROS_PACKAGE_PATH: /opt/ros/{{rosdistro}}/share:/opt/ros/{{rosdistro}}/stacks
-    LD_LIBRARY_PATH: /opt/ros/{{rosdistro}}/lib:/opt/ros/{{rosdistro}}/lib/x86_64-linux-gnu
-    CPATH: /opt/ros/{{rosdistro}}/include
-    PATH: /opt/ros/{{rosdistro}}/bin
-    PYTHONPATH: /opt/ros/{{rosdistro}}/lib/python2.7/dist-packages
-    PKG_CONFIG_PATH: /opt/ros/{{rosdistro}}/lib/pkgconfig:/opt/ros/{{rosdistro}}/lib/x86_64-linux-gnu/pkgconfig
-    ROS_ETC_DIR: /opt/ros/{{rosdistro}}/etc/ros
-  ignore_errors: True
-
 - name: add ros setup to bashrc
   sudo: yes
-  shell: echo "source /home/{{robotuser}}/catkin_ws/devel/setup.bash" >>/home/{{robotuser}}/.bashrc
+  shell: echo "source /opt/ros/{{rosdistro}}/setup.bash" >>/home/{{robotuser}}/.bashrc
 
 - name: ensure robot-upstart is installed
   sudo: yes

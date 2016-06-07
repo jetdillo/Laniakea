@@ -2,5 +2,7 @@
 - hosts: '{{robothosts}}'
 
   remote_user: ubuntu
-
-- include: roles/jetson/tasks/kernel.yml 
+  sudo: yes
+  roles:
+     - common
+     - ubuntu

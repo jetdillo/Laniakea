@@ -2,6 +2,8 @@
 
 - hosts: '{{robothosts}}'
 
+  remote_user: ubuntu
+
   tasks:
     - set_fact:
         my_ssh_key: "{{ lookup('env','HOME') }}/.ssh/id_rsa.pub"
