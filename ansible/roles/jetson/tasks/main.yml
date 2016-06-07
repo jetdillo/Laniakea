@@ -6,12 +6,12 @@
 #     - Tegra_Linux_Sample-Root-Filesystem_R21.3.0_armhf.tbz2
 #  register: have_archive
 # 
-- name: fetch images (This may take a while depending on your connection)
-  get_url: url='{{archive_base_url}}/{{ item }}' dest='{{ archive_dest_path }}' validate_certs=no
-  with_items:
-     - Tegra124_Linux_R21.3.0_armhf.tbz2
-     - Tegra_Linux_Sample-Root-Filesystem_R21.3.0_armhf.tbz2
-
+#- name: fetch images (This may take a while depending on your connection)
+#  get_url: url='{{archive_base_url}}/{{ item }}' dest='{{ archive_dest_path }}' validate_certs=no
+#  with_items:
+#     - Tegra124_Linux_R21.3.0_armhf.tbz2
+#     - Tegra_Linux_Sample-Root-Filesystem_R21.3.0_armhf.tbz2
+#
 - name: unpack Grinch archive
   sudo: yes
   unarchive: src='{{ archive_dest_path }}/Tegra124_Linux_R21.3.0_armhf.tbz2' dest=/tmp
@@ -23,6 +23,14 @@
 - name: apply Tegra/Grinch binaries and assorted dtbs
   sudo: yes
   shell: ./apply_binaries.sh chdir=/tmp/Linux_for_Tegra
+
+- name: Ensure .ssh directory exists on root FS
+  sudo: yes 
+  file: path=/tmp/Linux_for_Tegra/rootfs/home/ubuntu/.ssh state=directory mode=0600 owner=ubuntu
+
+- name: copy current user ssh key into authorized_keys on rootfs
+  sudo: yes
+  shell: "cp /home/{{ ansible_ssh_user }}/.ssh/id_rsa.pub /tmp/Linux_for_Tegra/rootfs/home/ubuntu/.ssh/authorized_keys"
 
 - name: Place Jetson board in Recovery/Reset mode
   pause: prompt="Hit Enter to continue"
@@ -36,3 +44,12 @@
   sudo: yes
   shell: ./flash.sh jetson-tk1 mmcblk0p1 chdir=/tmp/Linux_for_Tegra
   failed_when: is_connected is not defined 
+
+- name: Flashing Complete. Remove USB cable, plug Jetson into local LAN via Ethernet
+  pause: prompt="Press RESET on Jetson board and press ENTER to continue"
+
+- name: Wait 30 seconds for network to become available 
+  pause: seconds=30
+
+- name: Check for connectivity
+  shell: ping -c 5 tegra-ubuntu.local

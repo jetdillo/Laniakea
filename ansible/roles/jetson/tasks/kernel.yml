@@ -11,6 +11,10 @@
 
   - name: get Grinch zImage
     get_url: url="{{archive_base_url}}/zImage" dest="{{ archive_dest_path }}" validate_certs=no
+  
+  - name: get current ssh public key
+    sudo: yes
+    authorized_key: user=ubuntu key="{{ lookup('file', my_ssh_key) }}"
 
   - name: fetch Grinch modules
     get_url: url="{{archive_base_url}}/jetson-tk1-grinch-21.3.4-modules.tar.bz2" dest="{{ archive_dest_path }}" validate_certs=no

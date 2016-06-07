@@ -1,4 +1,5 @@
 ---
 - hosts: '{{robothosts}}'
 
+- include: roles/common/tasks/keypush.yml
 - include: roles/jetson/tasks/kernel.yml 
