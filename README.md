@@ -29,6 +29,8 @@ In any case, you should be using the current Ubuntu-provided Ansible packages, w
 Roles are proceeding apace. Things will start to move around and be re-disorganized shortly. 
 The existing playbooks under the main top-level "playbooks" tree will be left as is for those who just want to play along at home and don't want/need a whole huge role-based build system. 
 
+## Playbooks
+
 Static, self-contained playbooks are found under laniakea/playbooks and do the following things:
 
 * make_sd.yml
@@ -40,6 +42,28 @@ Static, self-contained playbooks are found under laniakea/playbooks and do the f
 
 * setup_ros.yml 
    * A basic provisioning playbook to install a specified version of ROS onto a host. You will need to tweak the hosts: line to the system/inventory entry you want to deploy to. The ``make_sd.yml`` playbook generates images w/ ROS Indigo Igloo already installed on it. You should only need to use this on a system/series of systems that don't have ROS already installed(like, say, a chaser/maintenance laptop or a Raspberry Pi that already has Ubuntu of some stripe installed on it). 
+
+## Roles
+
+Platform-based "Roles" live under `ansible/roles` and cover the following tasks below. 
+These work best for experienced Ansible users
+
+* common
+   * Common variables and tasks, mostly apt-gets to install necessary packages live here
+
+* jetson_flash.yml **WORKS**
+   * Uses the jetson role to flash the NVidia L4T image onto the MMC of the Jetson TK1 board. 
+* jetson_kernel.yml
+   * Pushes the "Grinch" kernel and related binaries, DTBs, and modules over to a flashed Jetson TK1 board. 
+     Use this after running jetson_flash
+* sd  _under development_
+   * Role for flashing Ubuntu and/or ROS onto SD-card
+
+* ubiquity **WORKS**
+   * Role for flashing the [Ubiquity Robots](http://ubiquityrobotics) image onto an SD card.
+
+* ubuntu **WORKS**
+   * Role for installing ROS and configuring a catkin workspace on an Ubuntu Linux system on the same LAN segment as the system you're running Ansible from. 
 
 How to run:
 
@@ -60,5 +84,3 @@ The extra "-k" tells Ansible that you need to use regular password auth along wi
 From here you branch off into other appropriate playbooks for installing the BV80 BotVac packages, for example.
 
 These should mostly work, although the make_sd.yml has received the brunt of hacking and testing. Please send pull requests, comments, bug reports, etc. 
-
-
