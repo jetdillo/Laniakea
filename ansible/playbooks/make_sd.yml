@@ -30,6 +30,9 @@
     - name: unpack the zip file 
       unarchive: src='{{ zippath }}' dest=/tmp
 
+    - name: Turn off automounting of removable media, it messes with things we need to do with the SD card in a moment
+      shell: gsettings set org.gnome.desktop.media-handling automount false
+
     - name: Remove SD Cards and USB drives 
       pause: prompt="Hit Enter to continue"
  
@@ -62,21 +65,6 @@
       debug: msg="Looks like {{targetdev.stdout}} is an SD card"
       failed_when: targetdev is not defined
    
-    - name: Check mount status of target device
-      shell: df -ak|grep '{{ targetdev.stdout }}'|wc -l|tr -d "\n"
-      register: td_mounted 
- 
-    - name: get mountpoint of target device
-      shell: df -aTk|grep '{{ targetdev.stdout }}'
-      register: td_mountline
-      when: td_mounted.stdout == "1"
-
-      #Ansible mount is kind of a pain to iterate over, so we use the shell
-    - name: unmount target device if necessary
-      sudo: yes
-      shell: umount {{ item }}
-      with_lines: cat /etc/mtab|grep '{{targetdev.stdout}}'|cut -d' ' -f 2
-
     - name: READY TO WRITE SD CARD 
       pause: prompt="Hit Enter to continue and ERASE ALL DATA on {{targetdev.stdout}} . if this is not the device you want to use, hit CTRL-C to break out"
       

@@ -10,7 +10,6 @@
   with_items:
      - curl
      - wget 
-     - emacs
      - vim
      - git
      - g++
@@ -25,10 +24,13 @@
   sudo: yes
   shell: touch /etc/apt/sources.list.d/ros-latest.list owner=root group=collective mode=0644
   when: hasapt.stat.exists == False
-   
+ 
+- name: get lsb release name
+  shell: "echo deb http://packages.ros.org/ros/ubuntu $(/usr/bin/lsb_release -sc) main" 
+  register: lsbversion
 - name: configure apt-sources
   sudo: yes
-  lineinfile: dest=/etc/apt/sources.list.d/ros-latest.list state=present line="deb http://packages.ros.org/ros/ubuntu trusty main"
+  lineinfile: dest=/etc/apt/sources.list.d/ros-latest.list state=present line="{{ lsbversion.stdout }}"
 
     #Ansible doesn't understand HKP, so we cannot have nice things
 - name: fetch keys
@@ -39,9 +41,13 @@
   sudo: yes
   apt: name=ros-{{rosdistro}}-ros-base state=present update_cache=yes
 
+- name: Get roscore related packages
+  sudo: yes
+  apt: name=python-roslaunch state=present
+
 - name: Get ros-install
   sudo: yes 
-  apt: name=python-rosdep
+  apt: name=python-rosdep state=present
 
 - name: init rosdep
   sudo: yes
@@ -52,7 +58,7 @@
 
 - name: rosinstall
   sudo: yes
-  apt: name=python-rosinstall
+  apt: name=python-rosinstall state=present
 
 
 - name: ensure a catkin workspace exists
@@ -75,6 +81,7 @@
 - name: ensure robot-upstart is installed
   sudo: yes
   apt: name=ros-{{rosdistro}}-robot-upstart state=present update_cache=yes
+  when: rosdistro != 'kinetic'
 
     #Now that we're done tromping about all over the filesystem, we should tidy up a bit...
 - name: fix-up home permissions

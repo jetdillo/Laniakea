@@ -11,6 +11,5 @@
      - libnss-mdns
      - util-linux
      - gddrescue
-     - udisks
      - libusb-1.0-0-dev
 

@@ -11,16 +11,18 @@
      - util-linux
      - gddrescue
    
-- name: Check if archive has been downloaded already
-  stat: path='{{ archive_path }}'
-  register: have_archive
- 
-- name: fetch the latest image(This will take a while)
-  get_url: url='{{ archive_remote_path }}' dest='{{ archive_dest_path }}' validate_certs=no
-  when: have_archive.stat.exists == False
+#
+#- name: fetch the latest image(This will take a while)
+#  get_url: url=http://www.finnie.org/software/raspberrypi/ubuntu-rpi3/ubuntu-16.04-preinstalled-server-armhf+raspi3.img.xz dest=/tmp validate_certs=no
+  #get_url: url="{{ archive_url }}" dest="{{ archive_dest_path }}" validate_certs=no
 
-- name: unpack the archive file 
-  unarchive: src='{{ archive_dest_path }}' dest=/tmp
+#Ansible unarchive doesn't support xz formatted files so we cannot have nice things
+#- name: unpack the archive file 
+#  shell: xz -df {{ archive_dest_path }} chdir=/tmp
+
+
+- name: Turn off automounting of removable media, it messes with things we need to do with the SD card in a moment
+  shell: gsettings set org.gnome.desktop.media-handling automount false
 
 - name: Remove SD Cards and USB drives 
   pause: prompt="Hit Enter to continue"
@@ -54,31 +56,17 @@
   debug: msg="Looks like {{targetdev.stdout}} is an SD card"
   failed_when: targetdev is not defined
    
-- name: Check mount status of target device
-  shell: df -ak|grep '{{ targetdev.stdout }}'|wc -l|tr -d "\n"
-  register: td_mounted 
- 
-- name: get mountpoint of target device
-  shell: df -aTk|grep '{{ targetdev.stdout }}'
-  register: td_mountline
-  when: td_mounted.stdout == "1"
-
-      #Ansible mount is kind of a pain to iterate over, so we use the shell
-- name: unmount target device if necessary
-  sudo: yes
-  shell: umount {{ item }}
-  with_lines: cat /etc/mtab|grep '{{targetdev.stdout}}'|cut -d' ' -f 2
-
 - name: READY TO WRITE SD CARD 
   pause: prompt="Hit Enter to continue and ERASE ALL DATA on {{targetdev.stdout}} . if this is not the device you want to use, hit CTRL-C to break out"
+
+- name: "Inflate 2nd partition to full size( using --force to get around geometry from .img file)"
+  sudo: yes
+  shell: sfdisk '{{ targetdev.stdout }}' < files/urbi.layout --force
+  ignore_errors: true
       
 - name: "COPYING IMG TO '{{ targetdev.stdout }}' . This will take a few minutes..."
   sudo: yes
   shell: ddrescue -D -d --force /tmp/'{{ imgname }}' '{{ targetdev.stdout }}'
-
-- name: "Inflate 2nd partition to full size( using --force to get around geometry from .img file)"
-  sudo: yes
-  shell: sfdisk '{{ targetdev.stdout }}' < /home/armadilo/laniakea/ansible/files/urbi.layout --force
 
 - name: Get name of new Linux fs partition
   sudo: yes
