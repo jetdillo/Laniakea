@@ -79,6 +79,8 @@ cd <YOUR LOCAL GIT REPO>/laniakea/ansible/playbooks
 
 ## Make a ROS Indigo SD card running the Ubiquity Robotics 14.04 image
 
+**NB: SD cards can be wonky and vary in quality from vendor to vendor or even batch to batch from the same vendor. If you are having problems getting the dd or other partition/imaging tasks to run, try another card before submitting a bug. I've run into this myself when testing the `sd` role **
+
 To run make_sd.yml to flash an SD card with the Ubiquity Robotics image for Raspberry Pi do this:
 
 `ansible-playbook -K make_sd.yml`  
