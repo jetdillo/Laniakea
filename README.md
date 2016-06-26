@@ -26,7 +26,11 @@ Instead, use the Fabric script under the Fabric directory of this repo or rip ou
 
 In any case, you should be using the current Ubuntu-provided Ansible packages, which will install Ansible 1.x, which is what Laniakea wants. I've not started looking at Ansible 2.x yet.  
 
-Roles are proceeding apace. Things will start to move around and be re-disorganized shortly. 
+Roles are proceeding apace and under active development & testing. 
+* As of late June 2016, the `sd`, `ubuntu` and `rpi` roles have seen the most work.  
+   * The `rpi3.yml` generates a satisfactory 16.04 image suitable for installing ROS Kinetic, but the distro as provided leaves a few things to be desired,
+     openssh-server is not installed by default, there is no Python of any flavor installed. I can't recommend this unless you REALLY need an image for a Pi 3 because it's far from seamless. After getting up up and running you'd apply the 'ubuntu' role to install Kinetic on there. 
+
 The existing playbooks under the main top-level "playbooks" tree will be left as is for those who just want to play along at home and don't want/need a whole huge role-based build system. 
 
 ## Playbooks
@@ -43,6 +47,7 @@ Static, self-contained playbooks are found under laniakea/playbooks and do the f
 * setup_ros.yml 
    * A basic provisioning playbook to install a specified version of ROS onto a host. You will need to tweak the hosts: line to the system/inventory entry you want to deploy to. The ``make_sd.yml`` playbook generates images w/ ROS Indigo Igloo already installed on it. You should only need to use this on a system/series of systems that don't have ROS already installed(like, say, a chaser/maintenance laptop or a Raspberry Pi that already has Ubuntu of some stripe installed on it). 
 
+
 ## Roles
 
 Platform-based "Roles" live under `ansible/roles` and cover the following tasks below. 
@@ -51,11 +56,6 @@ These work best for experienced Ansible users
 * common
    * Common variables and tasks, mostly apt-gets to install necessary packages live here
 
-* jetson_flash.yml **WORKS**
-   * Uses the jetson role to flash the NVidia L4T image onto the MMC of the Jetson TK1 board. 
-* jetson_kernel.yml
-   * Pushes the "Grinch" kernel and related binaries, DTBs, and modules over to a flashed Jetson TK1 board. 
-     Use this after running jetson_flash
 * sd  _under development_
    * Role for flashing Ubuntu and/or ROS onto SD-card
 
@@ -65,10 +65,16 @@ These work best for experienced Ansible users
 * ubuntu **WORKS**
    * Role for installing ROS and configuring a catkin workspace on an Ubuntu Linux system on the same LAN segment as the system you're running Ansible from. 
 
+## Top-level 
+
+`.yml` files at the top of the `ansible` tree bring in specific vars_files to the more generic roles. For example, the `rpi3.yml` playbook uses the `sd` role with variable set for making an SD card to run Ubuntu 16.04 on a Raspberry Pi 3. 
+
 How to run:
 
 You will need to have Ansible installed already on the computer you run these playbooks from.
 cd <YOUR LOCAL GIT REPO>/laniakea/ansible/playbooks
+
+## Make a ROS Indigo SD card running the Ubiquity Robotics 14.04 image
 
 To run make_sd.yml to flash an SD card with the Ubiquity Robotics image for Raspberry Pi do this:
 
@@ -78,6 +84,19 @@ To run make_sd.yml to flash an SD card with the Ubiquity Robotics image for Rasp
 
 After make_sd.yml completes, run:
 `ansible-playbook -k -K -u ubuntu --extra-vars "robothost=ubiquity" newbiquity.yml` 
+
+...to finish installing some ubiquity-specific packages
+
+## Install ros-<distro>-ros-base on an existing Ubuntu host:
+
+* Add the following lines to your /etc/ansible/hosts file:
+[newbot]
+123.45.67.89 <---replace with the real IP of the target host
+
+* Run `ansible-playbook -K -u ubuntu --extra-vars "robothost=newbot rosdistro=<distro>" ubuntu.yml`
+  * Give the sudo password of the *remote* system when prompted. 
+  * Wait 10-30 minutes depending on your Internet connectivity
+  * Follow this up with whatever you need to do next, such as `ansible-playbook -K -u ubuntu --extra-vars "robothost=newbot" turtlebot.yml` if you're trying to build a Turtlebot for example...
 
 The extra "-k" tells Ansible that you need to use regular password auth along with the sudo password for this playbook run. This is because fresh out of the box, this install doesn't have any ssh public keys stored in /home/ubuntu/.ssh/authorized_keys 
 

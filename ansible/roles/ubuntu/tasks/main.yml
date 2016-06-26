@@ -39,7 +39,7 @@
 
 - name: Update packages and install ROS base
   sudo: yes
-  apt: name=ros-{{rosdistro}}-ros-base state=present update_cache=yes
+  apt: name=ros-{{ rosdistro }}-ros-base state=present update_cache=yes
 
 - name: Get roscore related packages
   sudo: yes
@@ -70,7 +70,16 @@
   args:
     executable: /bin/bash
   environment:
-    PATH: /opt/ros/{{rosdistro}}/bin
+    PATH: "{{ ansible_env.PATH }}:/opt/ros/{{rosdistro}}/bin"
+    PYTHONPATH: /opt/ros/{{rosdistro}}/lib/python2.7/dist-packages/
+  ignore_errors: True
+
+- name: Run initial catkin_makea
+  shell: source /opt/ros/{{rosdistro}}/setup.bash && catkin_make chdir=/home/{{robotuser}}/catkin_ws
+  args:
+    executable: /bin/bash
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/opt/ros/{{rosdistro}}/bin"
     PYTHONPATH: /opt/ros/{{rosdistro}}/lib/python2.7/dist-packages/
   ignore_errors: True
 

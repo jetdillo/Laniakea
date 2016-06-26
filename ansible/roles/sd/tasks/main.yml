@@ -1,20 +1,15 @@
 ---
-- name: ensure basic tools and packages are installed
-  sudo: true
-  apt: name={{ item }} state=present update_cache=yes
-  with_items:
-     - curl
-     - wget 
-     - git
-     - bmap-tools 
-     - libnss-mdns
-     - util-linux
-     - gddrescue
+
+- name: check if archive image has already been downloaded
+  stat: path={{ archive_dest_path }}
+  register: have_archive
    
-#
+
 #- name: fetch the latest image(This will take a while)
 #  get_url: url=http://www.finnie.org/software/raspberrypi/ubuntu-rpi3/ubuntu-16.04-preinstalled-server-armhf+raspi3.img.xz dest=/tmp validate_certs=no
-  #get_url: url="{{ archive_url }}" dest="{{ archive_dest_path }}" validate_certs=no
+#  get_url: url={{archive_url}} dest=/tmp validate_certs=no
+#  when: have_archive.stat.exists == False
+
 
 #Ansible unarchive doesn't support xz formatted files so we cannot have nice things
 #- name: unpack the archive file 
@@ -66,11 +61,17 @@
       
 - name: "COPYING IMG TO '{{ targetdev.stdout }}' . This will take a few minutes..."
   sudo: yes
-  shell: ddrescue -D -d --force /tmp/'{{ imgname }}' '{{ targetdev.stdout }}'
+  shell:  "/bin/dd if=/tmp/{{ imgname }} of={{ targetdev.stdout }}"
+
+- name:  COPY COMPLETE REMOVE/RE-INSERT SD CARD
+  pause: prompt="Remove {{targetdev.stdout}} from this system and re-insert. Hit Enter to continue"
+
+- name: Wait for media to mount
+  pause: seconds=20
 
 - name: Get name of new Linux fs partition
   sudo: yes
-  shell: fdisk -l '{{targetdev.stdout }}'|tail -1|cut -d' ' -f 1 
+  shell: "/sbin/fdisk -l '{{targetdev.stdout }}'|tail -1|cut -d' ' -f 1 "
   register: urbi_part
 
 - name: Run e2fsck JIC we need to cleanup from sfdisk remap
