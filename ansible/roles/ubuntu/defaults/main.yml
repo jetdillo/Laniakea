@@ -7,4 +7,3 @@ ros_ip: "{{ lookup('env','ROS_IP') }}"
 ros_etc_dir: "{{ lookup('env','ROS_ETC_DIR') }}"
 robothost: ubuntu
 robotuser: ubuntu
-rosdistro: indigo

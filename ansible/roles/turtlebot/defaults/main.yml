@@ -1,0 +1,6 @@
+---
+
+robothost: ubuntu
+robotuser: ubuntu
+robotmodel: kobuki
+rosdistro: indigo

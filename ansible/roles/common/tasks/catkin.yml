@@ -1,0 +1,21 @@
+- name: ensure a catkin workspace exists
+  file: path=/home/{{robotuser}}/catkin_ws/src state=directory mode=0777
+
+# Use catkin to finish setting up ROS
+- name: Initialize catkin workspace for nodes
+  shell: source /opt/ros/{{rosdistro}}/setup.bash && catkin_init_workspace chdir=/home/{{robotuser}}/catkin_ws/src
+  args:
+    executable: /bin/bash
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/opt/ros/{{rosdistro}}/bin"
+    PYTHONPATH: /opt/ros/{{rosdistro}}/lib/python2.7/dist-packages/
+  ignore_errors: True
+
+- name: Run initial catkin_make
+  shell: source /opt/ros/{{rosdistro}}/setup.bash && catkin_make chdir=/home/{{robotuser}}/catkin_ws
+  args:
+    executable: /bin/bash
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/opt/ros/{{rosdistro}}/bin"
+    PYTHONPATH: /opt/ros/{{rosdistro}}/lib/python2.7/dist-packages/
+  ignore_errors: True

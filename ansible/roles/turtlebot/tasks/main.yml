@@ -1,0 +1,25 @@
+---
+- name: Install packages needed to run a turtlebot 
+  sudo: yes
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+     - ros-{{ rosdistro }}-joy
+     - ros-{{ rosdistro }}-joystick-drivers
+     - ros-{{ rosdistro }}-teleop-twist-joy
+     - ros-{{ rosdistro }}-turtlebot
+     - ros-{{ rosdistro }}-turtlebot-bringup
+     - ros-{{ rosdistro }}-turtlebot-msgs
+     - ros-{{ rosdistro }}-turtlebot-navigation
+     - ros-{{ rosdistro }}-turtlebot-actions
+     - ros-{{ rosdistro }}-turtlebot-apps
+     - ros-{{ rosdistro }}-turtlebot-teleop
+     - ros-{{ rosdistro }}-turtlebot-description
+     - ros-{{ rosdistro }}-turtlebot-rviz-launchers
+  when:  rosdistro == 'indigo'
+
+- include kobuki.yml
+  when: {{ robotmodel }} == 'kobuki'
+
+#TBD
+#- include create.yml
+#  when: {{ robot_model }} == 'create'

@@ -1,0 +1,21 @@
+---
+#Install ROS-related packages for a Kobuki Turtlebot on a non-factory installed controller host
+- name: Install packages for a Kobuki Base
+  sudo: yes
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+     - ros-{{ rosdistro }}-kobuki
+     - ros-{{ rosdistro }}-kobuki-core
+
+#Alt method for installing udev rules that is more ansible compatible 
+- name: set up udev rules for /dev/kobuki
+  sudo: yes
+  command: /bin/cp /opt/ros/{{ rosdistro }}/share/kobuki_ftdi/57-kobuki.rules /etc/udev/rules.d
+
+- name: add current user to dialout group
+  sudo: yes
+  user: name={{ robot_user }} group=dialout append=yes 
+
+- name: restart udev to create /dev/kobuki 
+  sudo: yes
+  shell: udevadm control --reload-rules
