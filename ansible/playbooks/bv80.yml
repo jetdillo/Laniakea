@@ -8,30 +8,35 @@
     - robotuser: ubuntu
     - robotpw  : ubuntu
     - robottype: notmagni
-    - rosdistro: '{{rosdistro}}'
+    - rosdistro: '{{ rosdistro }}'
 
   tasks:
     
     - name: install some additional Ubuntu-related packages
+      sudo: yes
       apt: name={{ item }} state=present update_cache=yes
       with_items:
-       - ros-'{{rosdistro}}'-xacro 
-       - ros-'{{rosdistro}}'-turtlebot-description 
-       - ros-'{{rosdistro}}'-turtlebot-navigation 
-       - ros-'{{rosdistro}}'-turtlebot-teleop 
-       - ros-'{{rosdistro}}'-yocs-cmd-vel-mux 
-       - ros-'{{rosdistro}}'-yocs-velocity-smoother
-
-    - include: catkin.yml
+       - ros-{{ rosdistro }}-xacro 
+       - ros-{{ rosdistro }}-turtlebot-description 
+       - ros-{{ rosdistro }}-turtlebot-navigation 
+       - ros-{{ rosdistro }}-turtlebot-teleop 
+       - ros-{{ rosdistro }}-yocs-cmd-vel-mux 
+       - ros-{{ rosdistro }}-yocs-velocity-smoother
 
     - name: git clone the BotVac BV-80 repo
-      git: repo=https://github.com/SV-ROS/intro_to_ros.git dest=/home/'{{robotuser}}'/catkin_ws/src
+      sudo: yes
+      git: repo=https://github.com/SV-ROS/intro_to_ros.git dest=/home/'{{ robotuser }}'/catkin_ws/src clone=yes 
+
+    - name: Permissions fix-up
+      sudo: yes 
+      file: path=/home/{{ robotuser }} owner={{ robotuser }} group={{ robotuser }} recurse=yes
+
 
     - name: Do catkin_make on the intro_to_ros tree
-      shell: source /opt/ros/{{rosdistro}}/setup.bash && catkin_make chdir=/home/{{robotuser}}/catkin_ws
+      shell: source /opt/ros/{{ rosdistro }}/setup.bash && catkin_make chdir=/home/{{ robotuser }}/catkin_ws
       args:
          executable: /bin/bash
       environment:
-         PATH: "{{ ansible_env.PATH }}:/opt/ros/{{rosdistro}}/bin"
-         PYTHONPATH: /opt/ros/{{rosdistro}}/lib/python2.7/dist-packages/
+         PATH: "{{ ansible_env.PATH }}:/opt/ros/{{ rosdistro }}/bin"
+         PYTHONPATH: /opt/ros/{{ rosdistro }}/lib/python2.7/dist-packages/
       ignore_errors: True

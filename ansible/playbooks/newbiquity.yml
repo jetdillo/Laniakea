@@ -10,12 +10,14 @@
 
   tasks:
     
-    - name: push local ssh key into ubuntu authorized_keys 
-      sudo: true
-      authorized_key: user=ubuntu key=/home/'{{humanuser}}'/.ssh/id_rsa.pub
+    - set_fact:
+        local_ssh_key: "{{ lookup('env','HOME') }}/.ssh/id_rsa.pub"
+
+    - authorized_key: user=ubuntu key="{{ lookup('file', local_ssh_key) }}"
+      sudo: yes
 
     - name: ensure basic tools and packages are installed on remote host
-      sudo: true
+      sudo: yes
       apt: name={{ item }} state=present update_cache=yes
       with_items:
          - curl
@@ -31,7 +33,7 @@
          - dphys-swapfile
            
     - name: install Magni-related packages
-      sudo: true
+      sudo: yes
       apt: name={{ item }} state=present 
       with_items:
          - ros-indigo-hardware-interface
@@ -39,44 +41,38 @@
       when: robottype == 'magni'
 
     - name: clone Magni-related repos 
-      sudo: true
+      sudo: yes
       git: repo=https://github.com/UbiquityRobotics/ubiquity_motor.git dest=/home/'{{ robotuser }}'/catkin_ws/src clone=yes
       when: robottype == 'magni'
 
     - name: pull in robot-upstart
-      sudo: true
+      sudo: yes
       git: repo=https://github.com/clearpathrobotics/robot_upstart.git dest=/home/'{{ robotuser }}'/catkin_ws/src clone=yes
 
     - name: Permissions fix-up
-      sudo: true 
+      sudo: yes 
       file: path=/home/{{robotuser}} owner={{robotuser}} group={{robotuser}} recurse=yes
 
-    - name: Add dphys-swapfile
-      sudo: true
-      apt: name=dphys-swapfile state=present
-    
-    - name: Ready to reboot after swap added
-      pause: prompt="Ahhhh, the name is Re-Bootsy Baby!"
-     
-    - name: Reboot 
-      sudo: true
-      command: /sbin/reboot -h now  
-    
-    - name: wait for reboot
-      wait_for: port=22 host= "{{ robothost}}" search_regex=OpenSSH delay=30
-   
-    - name: ensure basic networking files exist
-      file: path=/etc/networking/interfaces state=present mode=644
-
-    - name: ensure entry for lo in interfaces file
-      lineinfile: dest=/etc/networking/interfaces line="auto lo"
     - name: ensure entry for iface lo
-      lineinfile: dest=/etc/networking/interfaces line="iface lo inet loopback"
-    - name: ensure entry for eth0
-      lineinfile: dest=/etc/networking/interfaces line="allow-hotplug eth0"
-    - name: ensure entry for iface eth0
-      lineinfile: dest=/etc/networking/interfaces line="iface eth0 inet dhcp"
+      sudo: yes
+      lineinfile: dest=/etc/network/interfaces line="iface lo inet loopback"
 
-    - name: ensure there is a hostname entry 
-      file: path=/etc/hostname state=present mode=644
-  
+    - name: ensure entry for eth0
+      sudo: yes
+      lineinfile: dest=/etc/network/interfaces line="allow-hotplug eth0"
+
+    - name: ensure entry for iface eth0
+      sudo: yes
+      lineinfile: dest=/etc/network/interfaces line="iface eth0 inet dhcp"
+
+
+
+    # Not sure why we want this on an sdcard
+    #- name: Add dphys-swapfile
+    #  sudo: yes
+    #  apt: name=dphys-swapfile state=present
+ 
+    - debug: msg="Done. Your Pi is ready to join the ROS Robot Revolution! "
+    - debug: msg="You will need to set up wireless networking manually based on your current environment"
+    - debug: msg="For next steps, check out the tutorials at http://www.ros.org or other playbooks for the turtlebot or BotVac80(bv80)"
+    

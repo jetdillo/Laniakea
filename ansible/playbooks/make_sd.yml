@@ -27,6 +27,14 @@
       get_url: url='{{ zipurl }}/{{ zipfile }}' dest='{{ zippath }}' validate_certs=no
       when: have_zip.stat.exists == False
 
+    - name: clean up bmap.img
+      file: path="/tmp/{{ bmapname }}" state=absent
+      when: have_zip.stat.exists == True
+
+    - name: clean up image 
+      file:  path="/tmp/{{ imgname }}" state=absent
+      when: have_zip.stat.exists == True
+
     - name: unpack the zip file 
       unarchive: src='{{ zippath }}' dest=/tmp
 
