@@ -49,7 +49,7 @@
       sudo: yes
       git: repo=https://github.com/clearpathrobotics/robot_upstart.git dest=/home/'{{ robotuser }}'/catkin_ws/src clone=yes
 
-    - name: Permissions fix-up
+    - name: fix-up permissions in /home
       sudo: yes 
       file: path=/home/{{robotuser}} owner={{robotuser}} group={{robotuser}} recurse=yes
 
@@ -65,7 +65,9 @@
       sudo: yes
       lineinfile: dest=/etc/network/interfaces line="iface eth0 inet dhcp"
 
-
+    - name: Add ROS master service announcement to avahi-services
+      sudo: yes
+      copy: src=roles/common/files/rosmaster.service dest=/etc/avahi/services/rosmaster.service
 
     # Not sure why we want this on an sdcard
     #- name: Add dphys-swapfile
