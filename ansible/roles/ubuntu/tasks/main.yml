@@ -41,10 +41,6 @@
   sudo: yes
   apt: name=ros-{{ rosdistro }}-ros-base state=present update_cache=yes
 
-- name: Get roscore related packages
-  sudo: yes
-  apt: name=python-roslaunch state=present
-
 - name: Get ros-install
   sudo: yes 
   apt: name=python-rosdep state=present
