@@ -1,0 +1,12 @@
+---
+
+- name: do_catkin_init
+  debug: msg="Do catkin_init on remote workspace"
+
+- include: catkin_init.yml
+
+- name: do_catkin_make
+  debug: msg="Do catkin_make on remote workspace"
+
+- include: catkin_make
+

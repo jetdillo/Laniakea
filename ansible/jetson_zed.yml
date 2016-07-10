@@ -1,0 +1,8 @@
+
+---
+- hosts: '{{ robothosts }}'
+
+  remote_user: ubuntu
+
+- include: roles/jetson/tasks/zed.yml 
+- include: roles/catkin/tasks/catkin_make.yml robotuser={{ansible_ssh_user}}

@@ -34,6 +34,8 @@ Roles are proceeding apace and under active development & testing.
    * The `rpi3.yml` generates a satisfactory 16.04 image suitable for installing ROS Kinetic, but the distro as provided leaves a few things to be desired,
      openssh-server is not installed by default, there is no Python of any flavor installed. I can't recommend this unless you REALLY need an image for a Pi 3 because it's far from seamless. After getting up up and running you'd apply the 'ubuntu' role to install Kinetic on there. 
 
+   * The Jetson role is mostly for flashing the "Grinch kernel" and related FS onto a TK1 board because NVidia has their own installer which they make you sign up and login for. 
+
 The existing playbooks under the main top-level "playbooks" tree will be left as is for those who just want to play along at home and don't want/need a whole huge role-based build system. 
 
 ## Playbooks

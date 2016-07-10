@@ -1,0 +1,14 @@
+- name: Install OpenCV-related packages
+  sudo: yes
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+     - imagemagick
+     - imagemagick-common
+     - python-pip
+     - python-matplotlib
+     - python-opencv
+     - python-numpy
+     - python-scipy
+     - python-sympy
+     - python-pygame
+

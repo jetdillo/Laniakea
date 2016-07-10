@@ -1,0 +1,28 @@
+---
+
+- hosts: '{{ robothosts }}'
+
+  tasks:
+
+    - name: ensure pre-req ROS packages are installed
+      sudo: yes
+      apt: name={{ item }} state=present update_cache=yes
+      with_items:
+        - ros-{{rosdistro}}-tf2-ros
+        - ros-{{rosdistro}}-nav-msgs
+        - ros-{{rosdistro}}-roscpp
+        - ros-{{rosdistro}}-rosconsole
+        - ros-{{rosdistro}}-sensor-msgs
+        - ros-{{rosdistro}}-image-transport
+        - ros-{{rosdistro}}-dynamic-reconfigure
+ 
+    - name: ensure PCL libraries are installed
+      sudo: yes
+      apt: name={{ item }} state=present 
+      with_items:
+        - ros-{{rosdistro}}-pcl-ros
+        - ros-{{rosdistro}}-pcl-msgs
+        - ros-{{rosdistro}}-pcl-conversions
+
+    - name: clone zed-ros-wrapper into catkin_ws
+      git: repo="https://github.com/stereolabs/zed-ros-wrapper.git" dest="/home/{{ ansible_ssh_user }}/catkin_ws/src" clone=yes 

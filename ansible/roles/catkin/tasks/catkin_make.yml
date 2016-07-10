@@ -1,0 +1,9 @@
+---
+- name: run catkin_make on remote workspace
+  shell: source /opt/ros/{{ rosdistro }}/setup.bash && catkin_make chdir=/home/{{robotuser}}/catkin_ws
+  args:
+    executable: /bin/bash
+  environment:
+    PATH: "{{ ansible_env.PATH }}:/opt/ros/{{rosdistro}}/bin"
+    PYTHONPATH: /opt/ros/{{rosdistro}}/lib/python2.7/dist-packages/
+  ignore_errors: True

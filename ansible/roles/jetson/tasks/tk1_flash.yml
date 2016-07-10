@@ -1,17 +1,17 @@
 ---
-#- name: Check if archive has been downloaded already
-#  stat: path="{{ archive_dest_path}}/{{ item }}" 
-#  with_items:
-#     - Tegra124_Linux_R21.3.0_armhf.tbz2
-#     - Tegra_Linux_Sample-Root-Filesystem_R21.3.0_armhf.tbz2
-#  register: have_archive
-# 
-#- name: fetch images (This may take a while depending on your connection)
-#  get_url: url='{{archive_base_url}}/{{ item }}' dest='{{ archive_dest_path }}' validate_certs=no
-#  with_items:
-#     - Tegra124_Linux_R21.3.0_armhf.tbz2
-#     - Tegra_Linux_Sample-Root-Filesystem_R21.3.0_armhf.tbz2
-#
+- name: Check if archive has been downloaded already
+  stat: path="{{ archive_dest_path}}/{{ item }}" 
+  with_items:
+     - Tegra124_Linux_R21.3.0_armhf.tbz2
+     - Tegra_Linux_Sample-Root-Filesystem_R21.3.0_armhf.tbz2
+  register: have_archive
+ 
+- name: fetch images (This may take a while depending on your connection)
+  get_url: url='{{archive_base_url}}/{{ item }}' dest='{{ archive_dest_path }}' validate_certs=no
+  with_items:
+     - Tegra124_Linux_R21.3.0_armhf.tbz2
+     - Tegra_Linux_Sample-Root-Filesystem_R21.3.0_armhf.tbz2
+
 - name: unpack Grinch archive
   sudo: yes
   unarchive: src='{{ archive_dest_path }}/Tegra124_Linux_R21.3.0_armhf.tbz2' dest=/tmp
