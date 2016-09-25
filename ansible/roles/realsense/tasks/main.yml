@@ -47,6 +47,13 @@
   sudo: yes
   shell: modprobe uvcvideo
 
+- name: Install ROS realsense-camera package 
+  sudo: yes
+  apt: name="ros-{{ rosdistro }}-realsense-camera" state=present update-cache=yes
+
+- name: Run rosdep update
+  shell: rosdep update
+
 #Tidy up permissions JIC we've stomped on anything while we've been mucking about...
 - name: fix-up home permissions
   sudo: yes
