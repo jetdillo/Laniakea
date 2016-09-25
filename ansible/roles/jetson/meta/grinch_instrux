@@ -1,0 +1,12 @@
+    tar -xvf Tegra124_Linux_R21.3.0_armhf.tbz2
+    cd Linux_for_Tegra/rootfs
+    sudo tar xpf ../../Tegra_Linux_Sample-Root-Filesystem_R21.3.0_armhf.tbz2
+
+    cd ..
+    sudo ./apply_binaries.sh
+
+    wget http://www.jarzebski.pl/files/jetsontk1/grinch-21.3.4/zimage
+    wget http://www.jarzebski.pl/files/jetsontk1/grinch-21.3.4/jetson-tk1-grinch-21.3.4-modules.tar.bz2
+    wget http://www.jarzebski.pl/files/jetsontk1/grinch-21.3.4/jetson-tk1-grinch-21.3.4-firmware.tar.bz2
+
+    sudo ./flash.sh jetson-tk1 mmcblk0p1

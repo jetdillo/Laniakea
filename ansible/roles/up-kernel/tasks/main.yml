@@ -1,0 +1,40 @@
+---
+- name: Install packages and kernel mods to run an Intel Up Board 
+  sudo: yes
+  apt_repository: repo='ppa:ubilinux/up'
+
+- name: Get UP-specific kernel image
+  sudo: yes
+  apt: name=linux-upboard state=present update_cache=yes
+
+- name: restart with new kernel
+  command: shutdown -r now "Ansible triggered reboot"
+  async: 0
+  poll: 0
+  ignore_errors: true  
+
+- name: Wait for Up Board to restart
+  local_action: wait_for host={{ robothosts }}
+                state=started
+  sudo: false
+
+- name: Get version of running kernel
+  command: uname -r 
+  register: kver
+
+- name: Remove current grub default 
+  sudo: yes
+  lineinfile: dest=/etc/default/grub regexp='GRUB_DEFAULT' state=absent
+
+- name: Set GRUB_DEFAULT to saved
+  sudo: yes
+  lineinfile: dest=/etc/default/grub line="GRUB_DEFAULT=saved" state=present
+
+- name: Update grub
+  sudo: yes
+  command: update-grub
+
+- name: update default kernel selection in GRUB
+  command: grub-set-default 'Advanced options for Ubuntu>Ubuntu, with Linux 4.2.0-3-upboard'
+#  when: " 'upboard' in kver" 
+ 

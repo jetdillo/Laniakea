@@ -1,0 +1,54 @@
+---
+
+- name: ensure packages needed for build are present
+  sudo: yes
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+     - build-essential 
+     - git
+     - g++
+     - libusb-1.0-0-dev
+     - python-wstools
+
+- name: fetch latest librealsense tree from github
+  git: repo="https://github.com/IntelRealSense/librealsense" dest="/home/{{ ansible_ssh_user }}/librealsense" clone=yes 
+ 
+- name: get Up-relevant branch
+  shell: "cd /home/{{ ansible_ssh_user }}/librealsense && git checkout tags/v0.9.2"
+
+ 
+- name: Run glfw3.sh
+  shell: "cd /home/{{ ansible_ssh_user }}/librealsense && yes | scripts/install_glfw3.sh"
+
+- name: Build librealsense
+  shell: "cd /home/{{ ansible_ssh_user }}/librealsense && make"
+
+- name: Install it
+  sudo: yes
+  shell: "cd /home/{{ ansible_ssh_user }}/librealsense && make install"
+
+- name: modprobe uvcvideo 
+  sudo: yes
+  shell: modprobe -r uvcvideo
+
+- name: Install udev rules 
+  sudo: yes
+  shell: cp /home/{{ ansible_ssh_user }}/librealsense/config/99-realsense-libusb.rules /etc/udev/rules.d/
+
+- name: Force re-read of udev ruleset
+  sudo: yes
+  shell: udevadm control --reload-rules
+
+- name: trigger udevadm
+  sudo: yes
+  shell: udevadm trigger
+
+- name: Reload uvcvideo kernel module
+  sudo: yes
+  shell: modprobe uvcvideo
+
+#Tidy up permissions JIC we've stomped on anything while we've been mucking about...
+- name: fix-up home permissions
+  sudo: yes
+  file: path=/home/{{robotuser}} owner={{robotuser}} group={{robotuser}} recurse=yes 
+

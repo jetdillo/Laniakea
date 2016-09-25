@@ -1,0 +1,8 @@
+---
+- hosts: '{{robothosts}}'
+
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+     - common
+     - realsense

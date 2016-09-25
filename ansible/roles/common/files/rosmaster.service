@@ -1,0 +1,13 @@
+<?xml version="1.0" standalone='no'?><!--*-nxml-*-->
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+
+<!-- Announce a ROS 1.x master on this host -->
+
+<service-group>
+  <name replace-wildcards="yes">ROS Master on %h</name>
+
+  <service>
+    <type>_http._tcp</type>
+    <port>11311</port>
+  </service>
+</service-group>

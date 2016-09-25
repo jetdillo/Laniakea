@@ -14,6 +14,7 @@
      - git
      - g++
      - libusb-1.0-0-dev
+     - python-wstools
 
 - name: Check for ROS-related apt-sources exists
   sudo: yes 

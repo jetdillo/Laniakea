@@ -1,0 +1,100 @@
+---
+- name: ensure basic tools and packages are installed
+  sudo: true
+  apt: name={{ item }} state=present update_cache=yes
+  with_items:
+     - curl
+     - wget 
+     - git
+     - bmap-tools 
+     - libnss-mdns
+     - util-linux
+     - gddrescue
+   
+- name: Check if archive has been downloaded already
+  stat: path='{{ archive_path }}'
+  register: have_archive
+ 
+- name: fetch the latest image(This will take a while)
+  get_url: url='{{ archive_remote_path }}' dest='{{ archive_dest_path }}' validate_certs=no
+  when: have_archive.stat.exists == False
+
+- name: unpack the archive file 
+  unarchive: src='{{ archive_dest_path }}' dest=/tmp
+
+- name: Remove SD Cards and USB drives 
+  pause: prompt="Hit Enter to continue"
+ 
+- name: Wait for removable media to finish umounting
+  pause: seconds=20
+
+- name: Examining fixed volumes
+  sudo: yes
+  shell: fdisk -l|awk '/^\/dev/ { print $1}'|sed 's/[0-9]//g'|uniq >/tmp/fixed_vols
+ 
+- name: scan complete. Now insert the SD card
+  pause: prompt="Hit Enter to continue"
+
+- name: Wait for media to mount
+  pause: seconds=20
+
+- name: Examining removable media 
+  sudo: yes
+  shell: fdisk -l|awk '/^\/dev/ { print $1}'|sed 's/[0-9]//g'|uniq >/tmp/all_vols
+
+- name: Diff mountable devices
+  sudo: yes
+  shell: diff /tmp/fixed_vols /tmp/all_vols|tail -1|awk '{ print $2 }'
+  register: targetdev
+    
+    #- fail: msg="NO SD CARD DETECTED *FAILING*. \n This error may also occur when there is no valid partition table on the card"
+    #  when: targetdev is not defined
+
+- name: Found the following removable media
+  debug: msg="Looks like {{targetdev.stdout}} is an SD card"
+  failed_when: targetdev is not defined
+   
+- name: Check mount status of target device
+  shell: df -ak|grep '{{ targetdev.stdout }}'|wc -l|tr -d "\n"
+  register: td_mounted 
+ 
+- name: get mountpoint of target device
+  shell: df -aTk|grep '{{ targetdev.stdout }}'
+  register: td_mountline
+  when: td_mounted.stdout == "1"
+
+      #Ansible mount is kind of a pain to iterate over, so we use the shell
+- name: unmount target device if necessary
+  sudo: yes
+  shell: umount {{ item }}
+  with_lines: cat /etc/mtab|grep '{{targetdev.stdout}}'|cut -d' ' -f 2
+
+- name: READY TO WRITE SD CARD 
+  pause: prompt="Hit Enter to continue and ERASE ALL DATA on {{targetdev.stdout}} . if this is not the device you want to use, hit CTRL-C to break out"
+      
+- name: "COPYING IMG TO '{{ targetdev.stdout }}' . This will take a few minutes..."
+  sudo: yes
+  shell: ddrescue -D -d --force /tmp/'{{ imgname }}' '{{ targetdev.stdout }}'
+
+- name: "Inflate 2nd partition to full size( using --force to get around geometry from .img file)"
+  sudo: yes
+  shell: sfdisk '{{ targetdev.stdout }}' < /home/armadilo/laniakea/ansible/files/urbi.layout --force
+
+- name: Get name of new Linux fs partition
+  sudo: yes
+  shell: fdisk -l '{{targetdev.stdout }}'|tail -1|cut -d' ' -f 1 
+  register: urbi_part
+
+- name: Run e2fsck JIC we need to cleanup from sfdisk remap
+  sudo: yes
+  shell: e2fsck -fp '{{urbi_part.stdout}}' 
+
+- name: "Expand filesystem on 2nd partition"
+  sudo: yes
+  shell: resize2fs '{{urbi_part.stdout}}'
+   
+- name: Copy complete...ready to boot
+  pause: prompt="Place the SD card in your target host, plug it into the same network this host is on and power it on. Press ENTER when ready to check connectivity"
+
+- name: Check for connectivity
+  shell: ping -c 5 ubuntu.local
